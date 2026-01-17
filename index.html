@@ -5,108 +5,137 @@
 <title>로또 번호 추첨기</title>
 <style>
   body {
-    font-family: Arial, sans-serif;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-    margin:0;
     background: #111;
-    color:white;
-    overflow:hidden;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin:0;
+    overflow: hidden;
   }
-  h1 {
-    font-size:28px;
-    color:#ffe138;
-    margin-bottom:20px;
-    text-align:center;
+  .slogan {
+    font-size: 28px;
+    color: yellow;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center;
   }
   .numbers {
-    display:flex;
-    gap:10px;
-    margin-bottom:20px;
-    position:relative;
-    z-index:2;
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    z-index: 10;
+    position: relative;
   }
   .number {
-    width:50px;
-    height:50px;
-    border-radius:50%;
-    background:#0dc2ff;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-weight:bold;
-    font-size:20px;
-    color:#111;
+    width: 50px;
+    height: 50px;
+    background: #222;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 20px;
   }
   .message {
-    font-size:20px;
-    margin-top:10px;
-    text-align:center;
-    min-height:24px;
-    position:relative;
-    z-index:2;
+    font-size: 20px;
+    margin-bottom: 20px;
+    min-height: 24px;
+    text-align: center;
+    color: #0dff72;
+    font-weight: bold;
+    z-index: 10;
+    position: relative;
+  }
+  button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background: #0d6efd;
+    color: white;
+    z-index: 10;
+    position: relative;
+  }
+  button:hover {
+    background: #0b5ed7;
   }
   canvas {
-    position:absolute;
+    position: absolute;
     top:0;
     left:0;
     width:100%;
     height:100%;
-    pointer-events:none;
-    z-index:1;
+    pointer-events: none;
+    z-index: 1;
   }
 </style>
 </head>
 <body>
 
-<h1>인생 여전 말고 인생 역전</h1>
-<div class="numbers" id="numbers"></div>
+<div class="slogan">인생 여전 말고 인생 역전</div>
+<h1>로또 번호 추첨기</h1>
+<div class="numbers" id="numbers">
+  <div class="number">-</div>
+  <div class="number">-</div>
+  <div class="number">-</div>
+  <div class="number">-</div>
+  <div class="number">-</div>
+  <div class="number">-</div>
+</div>
 <div class="message" id="message"></div>
+<button id="drawBtn">번호 추첨</button>
 <canvas id="fireworks"></canvas>
 
 <script>
 // --------------------- 로또 번호 추첨 ---------------------
 function drawLotto(){
-  const lottoNumbers = [];
-  while(lottoNumbers.length < 6){
-    const num = Math.floor(Math.random() * 45) + 1;
-    if(!lottoNumbers.includes(num)) lottoNumbers.push(num);
+  const numbersContainer = document.getElementById('numbers');
+  
+  // 1~45 배열 생성
+  let pool = Array.from({length:45},(_,i)=>i+1);
+  let result = [];
+
+  // 6개 랜덤 번호 추첨
+  for(let i=0;i<6;i++){
+    const idx = Math.floor(Math.random()*pool.length);
+    result.push(pool[idx]);
+    pool.splice(idx,1); // 중복 제거
   }
-  lottoNumbers.sort((a,b)=>a-b);
 
-  const numbersDiv = document.getElementById('numbers');
-  numbersDiv.innerHTML = '';
-  lottoNumbers.forEach(num=>{
-    const span = document.createElement('div');
-    span.className = 'number';
-    span.innerText = num;
-    numbersDiv.appendChild(span);
-  });
+  result.sort((a,b)=>a-b); // 정렬
 
-  showRandomMessage();
+  // 결과 표시
+  const numberElements = numbersContainer.querySelectorAll('.number');
+  numberElements.forEach((el,i)=>el.textContent=result[i]);
+
+  // 랜덤 응원 문구
+  const messages = [];
+  for(let i=1;i<=100;i++){
+    messages.push(`당첨을 기원합니다! 🎉 #${i}`);
+  }
+  const randomMsg = messages[Math.floor(Math.random()*messages.length)];
+  document.getElementById('message').textContent = randomMsg;
+
+  // 폭죽
   launchFireworks();
-}
-
-// --------------------- 랜덤 응원 문구 ---------------------
-const messages = [];
-for(let i=0;i<100;i++){
-  messages.push("행운 문구 #" + (i+1));
-}
-
-function showRandomMessage(){
-  const msgEl = document.getElementById('message');
-  const randomIndex = Math.floor(Math.random() * messages.length);
-  msgEl.innerText = messages[randomIndex];
 }
 
 // --------------------- 폭죽 ---------------------
 const canvas = document.getElementById('fireworks');
 const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+
+function resizeCanvas(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
 let particles = [];
 
@@ -114,7 +143,7 @@ function launchFireworks(){
   for(let i=0;i<100;i++){
     particles.push({
       x: Math.random()*canvas.width,
-      y: Math.random()*canvas.height, // 전체 높이
+      y: Math.random()*canvas.height,
       vx: (Math.random()-0.5)*6,
       vy: (Math.random()-0.5)*6,
       alpha:1,
@@ -148,20 +177,12 @@ function updateFireworks(){
 updateFireworks();
 
 // --------------------- 터치/클릭 이벤트 ---------------------
-function handleClick(){
-  drawLotto();
-}
-document.body.addEventListener('click', handleClick);
+const btn = document.getElementById('drawBtn');
+btn.addEventListener('click', drawLotto);
 document.body.addEventListener('touchstart', e=>{
   e.preventDefault();
-  handleClick();
+  drawLotto();
 },{passive:false});
-
-// --------------------- 리사이즈 대응 ---------------------
-window.addEventListener('resize', ()=>{
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-});
 </script>
 
 </body>
