@@ -2,52 +2,46 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>로또 추첨 + 폭죽 + 응원</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>로또 번호 추첨기</title>
 <style>
   body {
-    margin:0;
-    padding:0;
     font-family: Arial, sans-serif;
     display:flex;
     flex-direction:column;
     justify-content:center;
     align-items:center;
     height:100vh;
-    background:#111;
+    margin:0;
+    background: #111;
     color:white;
     overflow:hidden;
-    touch-action: manipulation;
   }
   h1 {
-    font-size: 28px;
-    color: #ffe138;
+    font-size:28px;
+    color:#ffe138;
     margin-bottom:20px;
     text-align:center;
   }
-  #numbers {
+  .numbers {
     display:flex;
-    gap: 10px;
-    margin-top: 20px;
-    flex-wrap:wrap;
-    justify-content:center;
+    gap:10px;
+    margin-bottom:20px;
   }
   .number {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background:#ff5722;
+    width:50px;
+    height:50px;
+    border-radius:50%;
+    background:#0dc2ff;
     display:flex;
     justify-content:center;
     align-items:center;
     font-weight:bold;
-    font-size:18px;
-    color:white;
-    box-shadow: 0 0 10px #fff;
+    font-size:20px;
+    color:#111;
   }
-  #message {
-    margin-top:20px;
-    font-size:18px;
+  .message {
+    font-size:20px;
+    margin-top:10px;
     text-align:center;
     min-height:24px;
   }
@@ -55,6 +49,8 @@
     position:absolute;
     top:0;
     left:0;
+    width:100%;
+    height:100%;
     pointer-events:none;
   }
 </style>
@@ -62,85 +58,104 @@
 <body>
 
 <h1>인생 여전 말고 인생 역전</h1>
-<div id="numbers"></div>
-<div id="message"></div>
-<canvas id="firework"></canvas>
+<div class="numbers" id="numbers"></div>
+<div class="message" id="message"></div>
+<canvas id="fireworks"></canvas>
 
 <script>
-// 로또 번호 추첨
-function drawLotto() {
+// --------------------- 로또 번호 추첨 ---------------------
+function drawLotto(){
   const lottoNumbers = [];
-  while(lottoNumbers.length<6){
-    const num = Math.floor(Math.random()*45)+1;
+  while(lottoNumbers.length < 6){
+    const num = Math.floor(Math.random() * 45) + 1;
     if(!lottoNumbers.includes(num)) lottoNumbers.push(num);
   }
   lottoNumbers.sort((a,b)=>a-b);
 
   const numbersDiv = document.getElementById('numbers');
-  numbersDiv.innerHTML='';
+  numbersDiv.innerHTML = '';
   lottoNumbers.forEach(num=>{
-    const span=document.createElement('div');
-    span.className='number';
-    span.innerText=num;
+    const span = document.createElement('div');
+    span.className = 'number';
+    span.innerText = num;
     numbersDiv.appendChild(span);
   });
+
+  showRandomMessage();
+  launchFireworks();
 }
 
-// 100개의 랜덤 응원 문구
+// --------------------- 랜덤 응원 문구 ---------------------
 const messages = [
-  "대박 기운이 느껴진다!","오늘은 행운이 함께!","행운의 번호야!","꿈을 믿어!","희망을 잡아!","이번 주는 네 차례!","파이팅!","운이 너에게!","좋은 기운 충만!","믿어봐!","행운을 쏘자!","오늘은 터진다!","인생 역전!","신의 선택은 너!","숫자가 반짝인다!","기적을 믿어!","너라면 할 수 있어!","운명을 잡아!","모든 가능성 열려있다!","오늘의 주인공은 너!",
-// ... 80개 더 추가 (실제 코드에서는 총 100개)
+  "오늘은 꼭 대박!", "행운이 너와 함께!", "기분 좋은 추첨!", "신의 한 수!", "대박을 기원!",
+  "행운을 믿어!", "이건 운명의 숫자!", "설렘 가득!", "행운의 주인공!", "꿈을 향해!",
+  "미소 가득!", "행운을 잡아라!", "오늘의 행운!", "황금 기회!", "신나는 추첨!",
+  "행운의 여신이 미소짓는다!", "로또의 신이 선택한다!", "희망찬 하루!", "행운 가득!", "기분 UP!",
+  // ... 80개 더 추가 가능 (총 100개)
 ];
-for(let i=messages.length;i<100;i++) messages.push("응원해! 힘내! "+(i+1));
+for(let i=20;i<100;i++) messages.push("행운 문구 #" + (i+1));
 
-// 폭죽 구현
-const canvas = document.getElementById('firework');
+function showRandomMessage(){
+  const msgEl = document.getElementById('message');
+  const randomIndex = Math.floor(Math.random() * messages.length);
+  msgEl.innerText = messages[randomIndex];
+}
+
+// --------------------- 폭죽 ---------------------
+const canvas = document.getElementById('fireworks');
 const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
-let particles=[];
 
-function createFirework(){
-  const x = Math.random()*canvas.width;
-  const y = Math.random()*canvas.height/2;
-  for(let i=0;i<50;i++){
+let particles = [];
+
+function launchFireworks(){
+  for(let i=0;i<100;i++){
     particles.push({
-      x:x,
-      y:y,
-      dx:(Math.random()-0.5)*6,
-      dy:(Math.random()-1.5)*6,
+      x: Math.random()*canvas.width,
+      y: Math.random()*canvas.height/2,
+      vx: (Math.random()-0.5)*4,
+      vy: (Math.random()-1.5)*4,
       alpha:1,
-      color:`hsl(${Math.random()*360},100%,50%)`
+      color: `hsl(${Math.random()*360},100%,50%)`,
+      life: 60 + Math.random()*30
     });
   }
 }
 
-function updateFirework(){
-  ctx.fillStyle='rgba(0,0,0,0.2)';
+function updateFireworks(){
+  ctx.fillStyle = "rgba(0,0,0,0.2)";
   ctx.fillRect(0,0,canvas.width,canvas.height);
+
   particles.forEach((p,i)=>{
-    p.x+=p.dx;
-    p.y+=p.dy;
-    p.dy+=0.05;
-    p.alpha-=0.02;
-    ctx.fillStyle=p.color;
-    ctx.globalAlpha=p.alpha;
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.05; // 중력
+    p.life--;
+    p.alpha = p.life/60;
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = p.alpha;
     ctx.beginPath();
     ctx.arc(p.x,p.y,3,0,Math.PI*2);
     ctx.fill();
-    if(p.alpha<=0) particles.splice(i,1);
+    if(p.life<=0) particles.splice(i,1);
   });
   ctx.globalAlpha=1;
-  requestAnimationFrame(updateFirework);
+  requestAnimationFrame(updateFireworks);
 }
-updateFirework();
+updateFireworks();
 
-// 화면 터치 이벤트
-document.body.addEventListener('touchstart',()=>{
+// --------------------- 터치/클릭 이벤트 ---------------------
+document.body.addEventListener('click', drawLotto);
+document.body.addEventListener('touchstart', e=>{
+  e.preventDefault();
   drawLotto();
-  createFirework();
-  const msg = messages[Math.floor(Math.random()*messages.length)];
-  document.getElementById('message').innerText = msg;
+}, {passive:false});
+
+// --------------------- 리사이즈 대응 ---------------------
+window.addEventListener('resize', ()=>{
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 });
 </script>
 
